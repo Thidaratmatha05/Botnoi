@@ -1,0 +1,422 @@
+function getproductdata(category='แมว'){
+  var sheeturl = 'https://docs.google.com/spreadsheets/d/1Qx7CUhOQ8_uY0RP1X6W1Iv7Bt2AHG4TrEAQKo7lM2i8/edit?usp=sharing'
+  var sheetname = 'สัตว์เลี้ยง'
+  var psheet = gspandas.gsdataframe(sheeturl,sheetname)
+  var pinfo = psheet.getrowdict('catcategory',category)
+  // Logger.log(pinfo)
+  // for (var i = 0; i < pinfo.length; i++) {
+  //   Logger.log(pinfo[i])
+  // }
+  return pinfo
+}
+
+function genproductflex(category,ncol=3){
+  var pdata = getproductdata(category)
+  var ncol = pdata.length
+  var pflex = getmultipleflex(pdata,ncol)
+  Logger.log(pdata.length)
+
+  return pflex
+}
+
+function getproductflex(p_catname,p_catimg,p_catid,altText='This is a Flex Message'){
+
+  var flextemplate = {
+  "type": "carousel",
+  "contents": [
+    {
+      "type": "bubble",
+      "size": "giga",
+      "hero": {
+        "type": "image",
+        "size": "full",
+        "aspectRatio": "20:13",
+        "aspectMode": "cover",
+        "url": p_catimg
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "text",
+            "text": ' catname :' + p_catname ,
+            "wrap": true,
+            "weight": "bold",
+            "size": "xl"
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": ' catid :' + p_catid ,
+                "wrap": true,
+                "weight": "bold",
+                "size": "xl",
+                "flex": 0
+              }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "button",
+            "style": "primary",
+            "action": {
+              "type": "uri",
+              "label": "เพิ่มรายการ",
+              "uri": "https://linecorp.com"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+
+  var lineres = {}
+  lineres['type'] = 'flex'
+  lineres['altText'] = altText
+  lineres['contents'] = flextemplate
+
+  var lr = {
+  "line_payload":[
+      lineres
+    ],
+  "response_type": "object"
+  }
+  return lr
+}
+
+function doGet(request){
+ // Change Spread Sheet url
+ var category = request.parameter.category
+ var ncol = request.parameter.ncol
+ // Logger.log(category,ncol)
+ var result = genproductflex(category,ncol)
+ // Logger.log(jo)
+ result = JSON.stringify(result);
+ return ContentService.createTextOutput(result).setMimeType(ContentService.MimeType.JSON); 
+}
+
+function getmenuflex(m_catimg,m_catname,m_catid){
+
+    var flextemplate = 
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": m_catimg,
+        "size": "full",
+        "aspectMode": "cover",
+        "aspectRatio": "320:213",
+        "action": {
+          "type": "message",
+          "label": "action",
+          "text": m_catname
+        }
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": " catname " + m_catname ,
+            "weight": "regular",
+            "size": "xxs",
+            "wrap": true,
+            "margin": "none",
+            "contents": []
+          },
+          {
+            "type": "text",
+            "text": " catid " + m_catid ,
+            "size": "xxs"
+          }
+        ],
+        "spacing": "none",
+        "paddingAll": "sm"
+      }
+    }
+
+return flextemplate
+}
+
+function getrowmenu(mlist){
+  var mltemp = []
+  for (let m in mlist){
+    let m_catname = mlist[m]['menu_catname']
+    let m_catid = mlist[m]['menu_catid']
+    let m_catimg = mlist[m]['menu_catimg']
+    var mtemp = getmenuflex(m_catimg,m_catname,m_catid)
+    mltemp.push(mtemp)
+    
+  }
+  return mltemp
+}
+
+
+function getmultipleflex(mlist, ncol = 1) {
+  
+  //let ncol = 3
+  //let ncol = mlist.length
+  let nrow = 1
+  Logger.log("getmultipleflex " + ncol)
+  Logger.log(nrow)
+  let lpayloadList = []
+  for (i = 0; i < nrow; i++){
+    let mltemp = []
+    for (j=0; j< ncol; j++){
+      let ind = i*ncol + j
+      let m_catname = mlist[ind]['catname']
+      let m_catid = mlist[ind]['catid']
+      let m_catimg = mlist[ind]['catimg']
+      var mtemp = getmenuflex(m_catimg,m_catname,m_catid)
+      mltemp.push(mtemp)
+      //Logger.log(mtemp)
+    }
+    
+    var flextemplate = {
+    "type": "carousel",
+    "contents": mltemp
+    }
+
+    var lineres = {}
+    lineres['type'] = 'flex'
+    lineres['altText'] = 'This is Flex message'
+    lineres['contents'] = flextemplate
+    lpayloadList.push(lineres)
+
+
+  }
+
+  var lr = {
+  "line_payload": lpayloadList,
+  "response_type": "object"
+  }
+  //Logger.log(lr)
+  return lr
+}
+
+--------------------------------------
+
+function getproductdata(category='แมว'){
+  var sheeturl = 'https://docs.google.com/spreadsheets/d/1Qx7CUhOQ8_uY0RP1X6W1Iv7Bt2AHG4TrEAQKo7lM2i8/edit?usp=sharing'
+  var sheetname = 'สัตว์เลี้ยง'
+  var psheet = gspandas.gsdataframe(sheeturl,sheetname)
+  var pinfo = psheet.getrowdict('catcategory',category)
+  // Logger.log(pinfo)
+  // for (var i = 0; i < pinfo.length; i++) {
+  //   Logger.log(pinfo[i])
+  // }
+  return pinfo
+}
+
+function genproductflex(category,ncol=3){
+  var pdata = getproductdata(category)
+  var ncol = pdata.length
+  var pflex = getmultipleflex(pdata,ncol)
+  Logger.log(pdata.length)
+
+  return pflex
+}
+
+function getproductflex(p_catname,p_catimg,p_catid,altText='This is a Flex Message'){
+
+  var flextemplate = {
+  "type": "carousel",
+  "contents": [
+    {
+      "type": "bubble",
+      "size": "giga",
+      "hero": {
+        "type": "image",
+        "size": "full",
+        "aspectRatio": "20:13",
+        "aspectMode": "cover",
+        "url": p_catimg
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "text",
+            "text": ' catname :' + p_catname ,
+            "wrap": true,
+            "weight": "bold",
+            "size": "xl"
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": ' catid :' + p_catid ,
+                "wrap": true,
+                "weight": "bold",
+                "size": "xl",
+                "flex": 0
+              }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "button",
+            "style": "primary",
+            "action": {
+              "type": "uri",
+              "label": "เพิ่มรายการ",
+              "uri": "https://linecorp.com"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+
+  var lineres = {}
+  lineres['type'] = 'flex'
+  lineres['altText'] = altText
+  lineres['contents'] = flextemplate
+
+  var lr = {
+  "line_payload":[
+      lineres
+    ],
+  "response_type": "object"
+  }
+  return lr
+}
+
+function doGet(request){
+ // Change Spread Sheet url
+ var category = request.parameter.category
+ var ncol = request.parameter.ncol
+ // Logger.log(category,ncol)
+ var result = genproductflex(category,ncol)
+ // Logger.log(jo)
+ result = JSON.stringify(result);
+ return ContentService.createTextOutput(result).setMimeType(ContentService.MimeType.JSON); 
+}
+
+function getmenuflex(m_catimg,m_catname,m_catid){
+
+    var flextemplate = 
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": m_catimg,
+        "size": "full",
+        "aspectMode": "cover",
+        "aspectRatio": "320:213",
+        "action": {
+          "type": "message",
+          "label": "action",
+          "text": m_catid
+        }
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": " catid " + m_catid ,
+            "weight": "regular",
+            "size": "xxs",
+            "wrap": true,
+            "margin": "none",
+            "contents": []
+          },
+          {
+            "type": "text",
+            "text": " catname " + m_catname,
+            "size": "xxs"
+          }
+        ],
+        "spacing": "none",
+        "paddingAll": "sm"
+      }
+    }
+
+return flextemplate
+}
+
+function getrowmenu(mlist){
+  var mltemp = []
+  for (let m in mlist){
+    let m_catname = mlist[m]['menu_catname']
+    let m_catid = mlist[m]['menu_catid']
+    let m_catimg = mlist[m]['menu_catimg']
+    var mtemp = getmenuflex(m_catimg,m_catname,m_catid)
+    mltemp.push(mtemp)
+    
+  }
+  return mltemp
+}
+
+
+function getmultipleflex(mlist, ncol = 1) {
+  
+  //let ncol = 3
+  //let ncol = mlist.length
+  let nrow = 1
+  Logger.log("getmultipleflex " + ncol)
+  Logger.log(nrow)
+  let lpayloadList = []
+  for (i = 0; i < nrow; i++){
+    let mltemp = []
+    for (j=0; j< ncol; j++){
+      let ind = i*ncol + j
+      let m_catname = mlist[ind]['catname']
+      let m_catid = mlist[ind]['catid']
+      let m_catimg = mlist[ind]['catimg']
+      var mtemp = getmenuflex(m_catimg,m_catname,m_catid)
+      mltemp.push(mtemp)
+      //Logger.log(mtemp)
+    }
+    
+    var flextemplate = {
+    "type": "carousel",
+    "contents": mltemp
+    }
+
+    var lineres = {}
+    lineres['type'] = 'flex'
+    lineres['altText'] = 'This is Flex message'
+    lineres['contents'] = flextemplate
+    lpayloadList.push(lineres)
+
+
+  }
+
+  var lr = {
+  "line_payload": lpayloadList,
+  "response_type": "object"
+  }
+  //Logger.log(lr)
+  return lr
+}
+
