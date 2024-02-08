@@ -1,0 +1,29 @@
+ var ss = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1Qx7CUhOQ8_uY0RP1X6W1Iv7Bt2AHG4TrEAQKo7lM2i8/edit?usp=sharing");
+ var sheet = ss.getSheetByName('สัตว์เลี้ยง');
+
+function search(e) {
+  var catid = 'cat07'
+  var value = sheet.getRange(2,1,sheet.getLastRow(),sheet.getLastColumn()).getDisplayValues()
+  
+  for(var i = 0; i<value.length; i++)
+  {
+    if(value[i][0]== catid){
+   i=i+2
+   var result = {};
+   var catname = sheet.getRange(i,2).getValue()
+   var catcategory = sheet.getRange(i, 3).getValue();
+   var catimg = sheet.getRange(i, 4).getValue();
+
+   Logger.log(catname, catcategory, catimg)
+    result.catid = catid
+    result.catname = catname
+    result.catcategory = catcategory
+    result.catimg = catimg
+    
+    var result = JSON.stringify(result);
+    Logger.log(result)
+    return ContentService.createTextOutput(result).setMimeType(ContentService.MimeType.JSON); 
+   }
+   }
+   return ContentService.createTextOutput(result).setMimeType(ContentService.MimeType.JSON); 
+}

@@ -1,0 +1,30 @@
+function doGet(request) {
+  var ss = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1Qx7CUhOQ8_uY0RP1X6W1Iv7Bt2AHG4TrEAQKo7lM2i8/edit?usp=sharing");
+  var sheet = ss.getSheetByName('โหวต');
+
+  var customer_id = request.parameter.customer_id;
+  // var customer_id = "LU092633e1eddcbb525a92d4b7c6112890-Ub12ec052a9930e69e2666a4957d57f53"
+
+  // Call the deleteVote function to remove the vote for the specified customer_id
+  // เรียกใช้ฟังก์ชัน DeleteVote เพื่อลบการลงคะแนนสำหรับ customer_id ที่ระบุ
+  var deleteResult = deleteVote(sheet, customer_id);
+
+  var result = {};
+  result.result = deleteResult ? 'deleted' : 'not found';
+  var resultJSON = JSON.stringify(result);
+  return ContentService.createTextOutput(resultJSON).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Function to delete a vote based on customer_id
+// ฟังก์ชั่นลบการลงคะแนนตาม customer_id
+function deleteVote(sheet, customer_id) {
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][1] === customer_id) {
+      // ลบแถวหากพบ customer_id
+      sheet.deleteRow(i + 1);
+      return true; // คืนค่าเป็นจริงเพื่อระบุการลบสำเร็จ
+    }
+  }
+  return false; // ส่งคืนค่าเท็จหากไม่พบ customer_id
+}
