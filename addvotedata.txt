@@ -1,0 +1,61 @@
+function doGet(request) {
+  var ss = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1Qx7CUhOQ8_uY0RP1X6W1Iv7Bt2AHG4TrEAQKo7lM2i8/edit?usp=sharing");
+  var sheet = ss.getSheetByName('vote');
+  var sheetdata = ss.getSheetByName('data');
+
+  // var customer_id = 101;
+  // var customer_name = "เบย์";
+  // var id = "633410077-0";
+ 
+  var customer_id = request.parameter.customer_id;
+  var customer_name = request.parameter.customer_name;
+  var id = request.parameter.id;
+  var name = getCatName(sheetdata, id); // รับชื่อ name ตาม id
+  var vote = 1;
+
+  Logger.log(customer_id + " :: " + customer_name + " :: " + id + " :: " + name + " :: " + vote);
+
+  var today = new Date();
+  var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+  var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+  var dateTime = date + ' ' + time;
+
+  // Check if the customer has already voted ตรวจสอบว่าลูกค้าได้ลงคะแนนแล้วหรือไม่
+  var existingRow = findExistingRow(sheet, customer_id);
+
+  if (existingRow !== -1) {
+    // Update the existing row with the new vote อัปเดตแถวที่มีอยู่ด้วยการโหวตใหม่
+    sheet.getRange(existingRow, 1, 1, 6).setValues([[dateTime, customer_id, customer_name, id, name, vote]]);
+  } else {
+    // Append a new row with the provided data บันทึกแถวใหม่ด้วยข้อมูลที่ให้ไว้
+    sheet.appendRow([dateTime, customer_id, customer_name, id, name, vote]);
+  }
+
+  var result = {};
+  result.result = 'added';
+  var resultJSON = JSON.stringify(result);
+  return ContentService.createTextOutput(resultJSON).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Function to find the existing row based on customer_id ฟังก์ชันเพื่อค้นหาแถวที่มีอยู่ตาม customer_id
+function findExistingRow(sheet, customer_id) {
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][1] === customer_id) {
+      return i + 1; // Return row index (1-based) if found ส่งกลับดัชนีแถว (แบบ 1) หากพบ
+    }
+  }
+  return -1; // Return -1 if not found ส่งคืน -1 หากไม่พบ
+}
+
+// Function to get catname based on catid from the 'สัตว์เลี้ยง' sheet ฟังก์ชั่นรับชื่อแมวตาม catid จากแผ่นงาน 'สัตว์เลี้ยง'
+function getCatName(sheetdata, id) {
+  var value = sheetdata.getRange(2, 1, sheetdata.getLastRow(), sheetdata.getLastColumn()).getValues();
+  for (var i = 0; i < value.length; i++) {
+    if (value[i][0] == id) {
+      // If the catid is found, return the corresponding catname หากพบ catid ให้ส่งคืน catname ที่เกี่ยวข้อง
+      return value[i][1];
+    }
+  }
+  return "Unknown name"; // Return a default value if catid is not found ส่งกลับค่าเริ่มต้นหากไม่พบ catid
+}

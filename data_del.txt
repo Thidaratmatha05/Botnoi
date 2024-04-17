@@ -1,0 +1,28 @@
+function doGet(request) {
+  var ss = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1Qx7CUhOQ8_uY0RP1X6W1Iv7Bt2AHG4TrEAQKo7lM2i8/edit?usp=sharing");
+  var sheet = ss.getSheetByName('data');
+
+  var id = request.parameter.id;
+
+  // เรียกใช้ฟังก์ชัน deleteData เพื่อลบ id ที่ระบุ
+  var deleteResult = deleteData(sheet, id);
+
+  var result = {};
+  result.result = deleteResult ? 'deleted' : 'not found';
+  var resultJSON = JSON.stringify(result);
+  return ContentService.createTextOutput(resultJSON).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ฟังก์ชั่นลบตาม id
+function deleteData(sheet, id) {
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] === id) {
+      // ลบแถวหากพบ id
+      sheet.deleteRow(i + 1);
+      return true; // คืนค่าเป็นจริงเพื่อระบุการลบสำเร็จ
+    }
+  }
+  return false; // ส่งคืนค่าเท็จหากไม่พบ 
+}
+

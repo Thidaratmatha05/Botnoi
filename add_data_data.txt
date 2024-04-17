@@ -1,0 +1,32 @@
+function doGet(request){
+    var ss = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1Qx7CUhOQ8_uY0RP1X6W1Iv7Bt2AHG4TrEAQKo7lM2i8/edit?usp=sharing&quot");
+    var sheet = ss.getSheetByName('data')
+
+    var id = request.parameter.id
+    var name = request.parameter.name  
+    var pic = request.parameter.pic 
+    var fb = request.parameter.fb
+    var group = request.parameter.group
+
+    var existingIds = sheet.getRange("A:A").getValues().flat(); // ID อยู่ในคอลัมน์ A
+
+    if(existingIds.includes(id)) {
+        var result = {
+            "error": "ID already exists(มีรหัสอยู่แล้ว)"
+        };
+    } else {
+        // ตรวจสอบว่า ID เป็นตัวเลขหรือไม่ ถ้าใช่ให้แปลงเป็นข้อความ
+        if(!isNaN(id)) {
+            id = "data" + id.toString(); // เพิ่ม "data" ด้านหน้า ID ถ้า ID เป็นตัวเลข
+        }
+        
+        sheet.appendRow([id, name, pic, fb, group]);
+        var result = {
+            "result": "added"
+        };
+    }
+
+    var resultJSON = JSON.stringify(result);
+    return ContentService.createTextOutput(resultJSON).setMimeType(ContentService.MimeType.JSON);
+}
+// ?id=<<id>>&name=<<name>>&pic=<<pic>>&fb=<<fb>>&group=<<group>>
